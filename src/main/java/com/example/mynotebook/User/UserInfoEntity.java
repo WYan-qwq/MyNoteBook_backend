@@ -1,9 +1,6 @@
 package com.example.mynotebook.User;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -20,7 +17,8 @@ public class UserInfoEntity {
 
 
     @Id
-    @Column(name = "UserId", nullable = false)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "user_id", nullable = false)
     private Integer id;
 
     @Column(name = "UserName", length = 100)

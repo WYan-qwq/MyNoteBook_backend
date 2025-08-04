@@ -1,0 +1,20 @@
+package com.example.mynotebook.Plan;
+import com.example.mynotebook.User.UserInfoEntity;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
+
+import java.util.Date;
+import java.util.List;
+import java.util.Optional;
+
+@Repository
+public interface PlanRepository extends JpaRepository<PlanEntity, Integer>{
+
+
+    List<PlanEntity> findByUser_Id(Integer userId);
+
+
+
+
+
+}
