@@ -1,4 +1,4 @@
-package com.example.mynotebook.Plan.Dto;
+package com.example.mynotebook.Plan.DTO;
 
 import java.time.Instant;
 

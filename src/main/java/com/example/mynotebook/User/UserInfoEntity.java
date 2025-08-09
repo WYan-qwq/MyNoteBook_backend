@@ -25,7 +25,7 @@ public class UserInfoEntity {
     private String userName;
 
     @Column(name = "password", nullable = false)
-    private Integer password;
+    private String password;
 
     @Column(name = "email", length = 100)
     private String email;

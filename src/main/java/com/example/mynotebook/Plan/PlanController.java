@@ -1,8 +1,8 @@
 package com.example.mynotebook.Plan;
 
 
-import com.example.mynotebook.Plan.Dto.PlanConverter;
-import com.example.mynotebook.Plan.Dto.PlanDto;
+import com.example.mynotebook.Plan.DTO.PlanConverter;
+import com.example.mynotebook.Plan.DTO.PlanDto;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;

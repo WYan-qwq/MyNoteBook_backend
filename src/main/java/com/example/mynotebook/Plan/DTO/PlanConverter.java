@@ -1,4 +1,4 @@
-package com.example.mynotebook.Plan.Dto;
+package com.example.mynotebook.Plan.DTO;
 
 import com.example.mynotebook.Plan.PlanEntity;
 
