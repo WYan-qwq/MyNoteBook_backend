@@ -4,6 +4,7 @@ import com.example.mynotebook.User.UserInfoEntity;
 import jakarta.persistence.*;
 
 import java.time.Instant;
+import java.time.LocalDate;
 
 @Table(name = "plan")
 @Entity
@@ -20,8 +21,8 @@ public class PlanEntity {
     @Column(name = "CreateTime")
     private Instant createTime;
 
-    @Column(name = "Date")
-    private Instant date;
+    @Column(name = "Date", nullable = false) // SQL 列类型应为 DATE
+    private java.time.LocalDate date;
 
     @Column(name = "Hour")
     private Integer hour;
@@ -89,11 +90,11 @@ public class PlanEntity {
         this.hour = hour;
     }
 
-    public Instant getDate() {
+    public LocalDate getDate() {
         return date;
     }
 
-    public void setDate(Instant date) {
+    public void setDate(LocalDate date) {
         this.date = date;
     }
 
