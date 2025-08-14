@@ -3,6 +3,7 @@ package com.example.mynotebook.Plan.DTO;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 
+import java.time.Instant;
 import java.time.LocalDate;
 
 public final class PlanDtos {
@@ -18,5 +19,6 @@ public final class PlanDtos {
         private String details;
         private Integer alarm;
         private Integer finished;
+        private Instant createTime;
     }
 }
