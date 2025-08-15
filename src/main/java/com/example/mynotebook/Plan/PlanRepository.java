@@ -11,4 +11,9 @@ import java.util.Optional;
 @Repository
 public interface PlanRepository extends JpaRepository<PlanEntity, Integer> {
     List<PlanEntity> findByUser_IdAndDateOrderByHourAscMinuteAscIdAsc(Integer userId, LocalDate date);
+    List<PlanEntity> findByUser_IdAndDateBetweenOrderByDateAscHourAscMinuteAscIdAsc(
+            Integer userId, LocalDate start, LocalDate end
+    );
+
 }
+

@@ -3,6 +3,7 @@ package com.example.mynotebook.Plan;
 import com.example.mynotebook.Plan.DTO.PlanCreateRequest;
 
 import com.example.mynotebook.Plan.DTO.PlanDtos;
+import com.example.mynotebook.Plan.DTO.PlanUpdateRequest;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -38,4 +39,25 @@ public class PlanController {
         return ResponseEntity.status(HttpStatus.CREATED).body(created);
     }
 
+    @GetMapping("/week")
+    public ResponseEntity<List<PlanDtos.PlanItem>> getPlansForWeek(
+            @RequestParam Integer userId,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date
+    ) {
+        return ResponseEntity.ok(service.getPlansForWeek(userId, date));
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<PlanDtos.PlanItem> update(
+            @PathVariable Integer id,
+            @Valid @RequestBody PlanUpdateRequest req
+    ) {
+        return ResponseEntity.ok(service.update(id, req));
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> delete(@PathVariable Integer id) {
+        service.delete(id);
+        return ResponseEntity.noContent().build(); // 204
+    }
 }
