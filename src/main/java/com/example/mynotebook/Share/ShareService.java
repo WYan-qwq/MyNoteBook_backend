@@ -28,21 +28,19 @@ public class ShareService {
         this.userRepo = userRepo;
     }
 
-    /** 创建分享 */
+    /** 创建分享（按某一天，而不是单条 plan） */
     public ShareDtos.ShareItem create(ShareCreateRequest req) {
-        if (req.getUserId() == null || req.getPlanId() == null
+        if (req.getUserId() == null || req.getPlanDate() == null
                 || req.getTitle() == null || req.getTitle().isBlank()) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "userId/planId/title required");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "userId/planDate/title required");
         }
 
         UserInfoEntity user = userRepo.findById(req.getUserId())
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
-        PlanEntity plan = planRepo.findById(req.getPlanId())
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Plan not found"));
 
         ShareEntity e = new ShareEntity();
         e.setUser(user);
-        e.setPlan(plan);
+        e.setPlanDate(req.getPlanDate());     // ✅ 分享这一天
         e.setTitle(req.getTitle().trim());
         e.setDetails(req.getDetails());
         e.setCreateTime(Instant.now());
@@ -50,17 +48,32 @@ public class ShareService {
         e.setComments(0);
 
         ShareEntity saved = shareRepo.save(e);
+        List<PlanEntity> dayPlans =
+                planRepo.findByUser_IdAndDateOrderByHourAscMinuteAsc(
+                        saved.getUser().getId(), saved.getPlanDate());
 
+        List<ShareDtos.PlanBrief> planBriefs = dayPlans.stream()
+                .map(p -> new ShareDtos.PlanBrief(
+                        p.getId(),
+                        p.getDate(),          // 如果是 Instant 就相应改 DTO
+                        p.getHour(),
+                        p.getMinute(),
+                        p.getTitle(),
+                        p.getDetails(),
+                        p.getAlarm(),
+                        p.getFinished()
+                ))
+                .toList();
         return new ShareDtos.ShareItem(
                 saved.getId(),
-                saved.getPlan().getId(),
-                // 如果你的 UserInfoEntity 没有 getUserId()，可改成 getId()
                 saved.getUser().getId(),
                 saved.getTitle(),
                 saved.getDetails(),
                 saved.getCreateTime(),
                 saved.getLikes(),
-                saved.getComments()
+                saved.getComments(),
+                saved.getPlanDate(),
+                planBriefs                   // ✅ 最后一行传当天的 PlanBrief 列表
         );
     }
 
@@ -73,31 +86,37 @@ public class ShareService {
         return rows.stream().map(this::toView).toList();
     }
 
-    /** Entity -> 视图 DTO */
+    /** Entity -> 视图 DTO（附带当天全部计划列表） */
     private ShareDtos.ShareView toView(ShareEntity e) {
         UserInfoEntity u = e.getUser();
-        PlanEntity pl = e.getPlan();
+
+        // 拉取该用户这一天的所有计划，按时间升序
+        List<PlanEntity> plans = planRepo.findByUser_IdAndDateOrderByHourAscMinuteAsc(
+                u.getId(), e.getPlanDate()
+        );
+
+        List<ShareDtos.PlanBrief> planBriefs = plans.stream().map(p ->
+                new ShareDtos.PlanBrief(
+                        p.getId(),
+                        p.getDate(),
+                        p.getHour(),
+                        p.getMinute(),
+                        p.getTitle(),
+                        p.getDetails(),
+                        p.getAlarm(),
+                        p.getFinished()
+                )
+        ).toList();
 
         ShareDtos.Author author = new ShareDtos.Author(
-                u.getId(),          // 确保有 getUserId()/或换成 getId()
-                u.getUserName(),        // 确保有 getUserName()
-                u.getPicture()          // 确保有 getPicture()
+                u.getId(),
+                u.getUserName(),
+                u.getPicture()
         );
 
-        ShareDtos.ShareContent share = new ShareDtos.ShareContent(
+        ShareDtos.ShareContent content = new ShareDtos.ShareContent(
                 e.getTitle(),
                 e.getDetails()
-        );
-
-        ShareDtos.PlanBrief plan = new ShareDtos.PlanBrief(
-                pl.getId(),
-                pl.getDate(),           // 如果 PlanEntity 的 date 是 Instant，则把 DTO 改成 Instant
-                pl.getHour(),
-                pl.getMinute(),
-                pl.getTitle(),
-                pl.getDetails(),
-                pl.getAlarm(),
-                pl.getFinished()
         );
 
         return new ShareDtos.ShareView(
@@ -105,7 +124,10 @@ public class ShareService {
                 e.getCreateTime(),
                 e.getLikes(),
                 e.getComments(),
-                author, share, plan
+                author,
+                content,
+                e.getPlanDate(),   // ✅ 哪一天
+                planBriefs         // ✅ 这一天的所有 plan
         );
     }
 }

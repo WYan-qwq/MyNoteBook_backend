@@ -9,25 +9,27 @@ public class ShareDtos {
     /** 新建分享后的简单返回 */
     public static class ShareItem {
         public Integer sharingId;
-        public Integer planId;
         public Integer userId;
         public String title;
         public String details;
         public Instant createTime;
         public Integer likes;
         public Integer comments;
+        public LocalDate planDate;       // ✅
+        public java.util.List<PlanBrief> plans;
 
-        public ShareItem(Integer sharingId, Integer planId, Integer userId,
+        public ShareItem(Integer sharingId, Integer userId,
                          String title, String details, Instant createTime,
-                         Integer likes, Integer comments) {
+                         Integer likes, Integer comments,LocalDate planDate, List<PlanBrief> plans) {
             this.sharingId = sharingId;
-            this.planId = planId;
             this.userId = userId;
             this.title = title;
             this.details = details;
             this.createTime = createTime;
             this.likes = likes;
             this.comments = comments;
+            this.planDate = planDate;
+            this.plans = plans;
         }
     }
 
@@ -37,20 +39,21 @@ public class ShareDtos {
         public Instant createTime;
         public Integer likes;
         public Integer comments;
-
         public Author author;        // 作者信息
         public ShareContent share;   // 分享文案（与计划独立）
-        public PlanBrief plan;       // 被分享的计划
+        public LocalDate planDate;      // ✅ 分享的那一天
+        public List<PlanBrief> plans;       // 被分享的计划
 
         public ShareView(Integer sharingId, Instant createTime, Integer likes, Integer comments,
-                         Author author, ShareContent share, PlanBrief plan) {
+                         Author author, ShareContent share, LocalDate planDate, List<PlanBrief> plans) {
             this.sharingId = sharingId;
             this.createTime = createTime;
             this.likes = likes;
             this.comments = comments;
             this.author = author;
             this.share = share;
-            this.plan = plan;
+            this.planDate = planDate;
+            this.plans = plans;
         }
     }
 

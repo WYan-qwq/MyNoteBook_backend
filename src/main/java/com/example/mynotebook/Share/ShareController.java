@@ -17,15 +17,14 @@ public class ShareController {
         this.service = service;
     }
 
-    @PostMapping
+    @PostMapping("/create")
     public ShareDtos.ShareItem create(@RequestBody ShareCreateRequest req) {
         return service.create(req);
     }
 
-    @GetMapping
-    public List<ShareDtos.ShareView> list(
-            @RequestParam(value = "userId", required = false) Integer userId
-    ) {
+    /** 获取所有 share（或某用户的 share） */
+    @GetMapping("/list")
+    public List<ShareDtos.ShareView> list(@RequestParam(required = false) Integer userId) {
         return service.list(userId);
     }
 }
