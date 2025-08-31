@@ -27,4 +27,13 @@ public class ShareController {
     public List<ShareDtos.ShareView> list(@RequestParam(required = false) Integer userId) {
         return service.list(userId);
     }
+    @PostMapping("/like")
+    public ShareDtos.LikeResult like(@RequestBody ShareDtos.LikeCreateRequest req) {
+        return service.like(req);
+    }
+
+    @PostMapping("/unlike")
+    public ShareDtos.UnlikeResult unlike(@RequestBody ShareDtos.LikeCreateRequest req) {
+        return service.unlike(req);
+    }
 }

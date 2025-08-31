@@ -104,4 +104,39 @@ public class ShareDtos {
             this.finished = finished;
         }
     }
+
+    public static class LikeCreateRequest {
+        private Integer shareId;
+        private Integer userId;
+
+        public Integer getShareId() { return shareId; }
+        public void setShareId(Integer shareId) { this.shareId = shareId; }
+
+        public Integer getUserId() { return userId; }
+        public void setUserId(Integer userId) { this.userId = userId; }
+    }
+
+    public static class LikeResult {
+        public Integer shareId;
+        public Integer likes;     // 最新点赞数
+        public boolean duplicated; // 是否重复点赞（已点过）
+
+        public LikeResult(Integer shareId, Integer likes, boolean duplicated) {
+            this.shareId = shareId;
+            this.likes = likes;
+            this.duplicated = duplicated;
+        }
+    }
+
+    public static class UnlikeResult {
+        public Integer shareId;
+        public Integer likes;     // 最新点赞数
+        public boolean removed;   // 是否真的删除了这次点赞（若本就没点过，则为 false）
+
+        public UnlikeResult(Integer shareId, Integer likes, boolean removed) {
+            this.shareId = shareId;
+            this.likes = likes;
+            this.removed = removed;
+        }
+    }
 }

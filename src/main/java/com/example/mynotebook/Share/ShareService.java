@@ -6,6 +6,7 @@ import com.example.mynotebook.Share.DTO.ShareCreateRequest;
 import com.example.mynotebook.Share.DTO.ShareDtos;
 import com.example.mynotebook.User.UserInfoEntity;
 import com.example.mynotebook.User.UserInfoRepository;
+import jakarta.transaction.Transactional;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
@@ -19,12 +20,16 @@ public class ShareService {
     private final ShareRepository shareRepo;
     private final PlanRepository planRepo;
     private final UserInfoRepository userRepo;
+    private final ShareLikeRepository likeRepo;
+
 
     public ShareService(ShareRepository shareRepo,
                         PlanRepository planRepo,
+                        ShareLikeRepository likeRepo,
                         UserInfoRepository userRepo) {
         this.shareRepo = shareRepo;
         this.planRepo = planRepo;
+        this.likeRepo = likeRepo;
         this.userRepo = userRepo;
     }
 
@@ -129,5 +134,64 @@ public class ShareService {
                 e.getPlanDate(),   // ✅ 哪一天
                 planBriefs         // ✅ 这一天的所有 plan
         );
+    }
+    @Transactional
+    public ShareDtos.LikeResult like(ShareDtos.LikeCreateRequest req) {
+        if (req.getShareId() == null || req.getUserId() == null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "shareId/userId required");
+        }
+
+        ShareEntity share = shareRepo.findById(req.getShareId())
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Share not found"));
+        UserInfoEntity user = userRepo.findById(req.getUserId())
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
+
+        // 已点赞则返回当前数量，不再+1
+        if (likeRepo.existsByShare_IdAndUser_Id(share.getId(), user.getId())) {
+            int current = (int) likeRepo.countByShare_Id(share.getId());
+            return new ShareDtos.LikeResult(share.getId(), current, true);
+        }
+
+        // 新增 like 记录
+        ShareLikeEntity e = new ShareLikeEntity();
+        e.setShare(share);
+        e.setUser(user);
+        e.setCreateTime(Instant.now());
+        likeRepo.save(e);
+
+        // 原子自增 Share.likes，避免并发下统计落后
+        shareRepo.increaseLikes(share.getId());
+
+        int current = (int) likeRepo.countByShare_Id(share.getId());
+        return new ShareDtos.LikeResult(share.getId(), current, false);
+    }
+
+    @Transactional
+    public ShareDtos.UnlikeResult unlike(ShareDtos.LikeCreateRequest req) {
+        if (req.getShareId() == null || req.getUserId() == null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "shareId/userId required");
+        }
+
+        // 确保 share & user 存在
+        shareRepo.findById(req.getShareId())
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Share not found"));
+        userRepo.findById(req.getUserId())
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
+
+        var likeOpt = likeRepo.findByShare_IdAndUser_Id(req.getShareId(), req.getUserId());
+        if (likeOpt.isEmpty()) {
+            int current = (int) likeRepo.countByShare_Id(req.getShareId());
+            return new ShareDtos.UnlikeResult(req.getShareId(), current, false); // 未删除（本来没点过）
+        }
+
+        // 删除 like 记录
+        likeRepo.delete(likeOpt.get());
+
+        // 原子自减 share.likes（不会 < 0）
+        shareRepo.decreaseLikes(req.getShareId());
+
+        // 返回最新计数
+        int current = (int) likeRepo.countByShare_Id(req.getShareId());
+        return new ShareDtos.UnlikeResult(req.getShareId(), current, true);
     }
 }
