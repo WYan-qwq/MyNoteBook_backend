@@ -194,4 +194,14 @@ public class ShareService {
         int current = (int) likeRepo.countByShare_Id(req.getShareId());
         return new ShareDtos.UnlikeResult(req.getShareId(), current, true);
     }
+
+    public boolean hasLiked(Integer userId, Integer shareId) {
+        if (userId == null || shareId == null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "userId/shareId required");
+        }
+        if (!shareRepo.existsById(shareId)) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Share not found");
+        }
+        return likeRepo.existsByShare_IdAndUser_Id(shareId, userId);
+    }
 }

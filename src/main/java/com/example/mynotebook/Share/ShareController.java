@@ -5,6 +5,7 @@ import com.example.mynotebook.Share.DTO.ShareDtos;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/share")
@@ -32,8 +33,16 @@ public class ShareController {
         return service.like(req);
     }
 
-    @PostMapping("/unlike")
-    public ShareDtos.UnlikeResult unlike(@RequestBody ShareDtos.LikeCreateRequest req) {
-        return service.unlike(req);
+    @GetMapping("/liked")
+    public Map<String, Object> liked(
+            @RequestParam Integer userId,
+            @RequestParam Integer shareId
+    ) {
+        boolean liked = service.hasLiked(userId, shareId);   // ✅ 实例调用
+        return Map.of(
+                "userId", userId,
+                "shareId", shareId,
+                "liked", liked
+        );
     }
 }
