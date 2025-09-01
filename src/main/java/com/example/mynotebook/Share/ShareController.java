@@ -1,5 +1,6 @@
 package com.example.mynotebook.Share;
 
+import com.example.mynotebook.Share.DTO.CommentDtos;
 import com.example.mynotebook.Share.DTO.ShareCreateRequest;
 import com.example.mynotebook.Share.DTO.ShareDtos;
 import org.springframework.web.bind.annotation.*;
@@ -13,9 +14,11 @@ import java.util.Map;
 public class ShareController {
 
     private final ShareService service;
+    private final CommentService commentService;
 
-    public ShareController(ShareService service) {
+    public ShareController(ShareService service,CommentService commentService) {
         this.service = service;
+        this.commentService = commentService;
     }
 
     @PostMapping("/create")
@@ -44,5 +47,10 @@ public class ShareController {
                 "shareId", shareId,
                 "liked", liked
         );
+    }
+
+    @GetMapping("/{id}/comments")
+    public List<CommentDtos.CommentView> listComments(@PathVariable("id") Integer sharingId) {
+        return commentService.listByShare(sharingId);
     }
 }
