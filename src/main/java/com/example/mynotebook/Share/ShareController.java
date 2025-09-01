@@ -53,4 +53,12 @@ public class ShareController {
     public List<CommentDtos.CommentView> listComments(@PathVariable("id") Integer sharingId) {
         return commentService.listByShare(sharingId);
     }
+
+    @PostMapping("/{id}/comments")
+    public CommentDtos.CommentView createComment(@PathVariable("id") Integer sharingId,
+                                                 @RequestBody CommentDtos.CommentCreateRequest req) {
+        req.setSharingId(sharingId);   // 用 path 上的 id
+        return commentService.create(req);
+    }
+
 }

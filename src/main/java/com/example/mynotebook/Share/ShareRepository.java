@@ -21,4 +21,14 @@ public interface ShareRepository extends JpaRepository<ShareEntity, Integer> {
     @Transactional
     @Query("update ShareEntity s set s.likes = case when s.likes > 0 then s.likes - 1 else 0 end where s.id = :id")
     void decreaseLikes(@Param("id") Integer id);
+
+    @Modifying(clearAutomatically = true, flushAutomatically = true)
+    @Transactional
+    @Query("update ShareEntity s set s.comments = s.comments + 1 where s.id = :id")
+    int incComments(@Param("id") Integer id);
+
+    @Modifying(clearAutomatically = true, flushAutomatically = true)
+    @Transactional
+    @Query("update ShareEntity s set s.comments = s.comments - 1 where s.id = :id and s.comments > 0")
+    int decComments(@Param("id") Integer id);
 }

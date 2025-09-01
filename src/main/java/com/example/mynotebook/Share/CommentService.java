@@ -4,9 +4,12 @@ import com.example.mynotebook.Share.DTO.CommentDtos;
 import com.example.mynotebook.Share.DTO.CommentDtos.CommentView;
 import com.example.mynotebook.User.UserInfoEntity;
 import com.example.mynotebook.User.UserInfoRepository;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
+import java.time.format.DateTimeParseException;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -16,6 +19,7 @@ import java.util.stream.Collectors;
 public class CommentService {
 
     private final CommentRepository repo;
+    private final ShareRepository shareRepo;
     private final UserInfoRepository userRepo;   // ✅ 注入用户仓库
 
     /** 返回树形结构（一级评论 + 子评论，时间升序） */
@@ -81,5 +85,58 @@ public class CommentService {
         v.setAuthor(a);
 
         return v;
+    }
+    @Transactional
+    public CommentView create(CommentDtos.CommentCreateRequest req) {
+        Integer parentId = req.getPreCommentId();
+
+        if (req.getUserId() == null || req.getSharingId() == null) {
+            throw new IllegalArgumentException("userId and sharingId are required.");
+        }
+        if (req.getContent() == null || req.getContent().isBlank()) {
+            throw new IllegalArgumentException("content is required.");
+        }
+
+        // 校验 share 存在
+        ShareEntity share = shareRepo.findById(req.getSharingId())
+                .orElseThrow(() -> new IllegalArgumentException("Share not found: " + req.getSharingId()));
+
+        // 如有 preCommentId，校验它属于同一分享
+        if (req.getPreCommentId() != null) {
+            CommentEntity parent = repo.findById(req.getPreCommentId())
+                    .orElseThrow(() -> new IllegalArgumentException("Parent comment not found: " + req.getPreCommentId()));
+            if (!parent.getSharingId().equals(req.getSharingId())) {
+                throw new IllegalArgumentException("preCommentId not under the same sharing.");
+            }
+        }
+
+        // 解析时间：前端未传则用 now()
+        LocalDateTime when = LocalDateTime.now();
+        if (req.getCreateTime() != null && !req.getCreateTime().isBlank()) {
+            try {
+                when = LocalDateTime.parse(req.getCreateTime());
+            } catch (DateTimeParseException e) {
+                // 容错：也可以抛出异常
+                when = LocalDateTime.now();
+            }
+        }
+
+        // 构造并保存评论
+        CommentEntity e = new CommentEntity();
+        e.setSharingId(req.getSharingId());
+        e.setUserId(req.getUserId());
+        e.setContent(req.getContent().trim());
+        e.setPreCommentId(req.getPreCommentId());
+        e.setCreateTime(when);
+
+        e = repo.save(e); // commentId 自增由数据库完成（建议 @GeneratedValue）
+
+        // comments +1
+        shareRepo.incComments(req.getSharingId());
+
+        // 返回带 author 的视图对象
+        UserInfoEntity u = userRepo.findById(req.getUserId()).orElse(null);
+        Map<Integer, UserInfoEntity> users = Map.of(req.getUserId(), u);
+        return toView(e, users); // 复用你之前的 toView(CommentEntity, Map<Integer,UserInfoEntity>)
     }
 }

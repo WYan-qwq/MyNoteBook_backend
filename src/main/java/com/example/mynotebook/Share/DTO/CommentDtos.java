@@ -29,4 +29,12 @@ public class CommentDtos {
         // 子评论
         private List<CommentView> children = new ArrayList<>();
     }
+    @Data
+    public static class CommentCreateRequest {
+        private Integer userId;         // 谁评论
+        private Integer sharingId;      // 评论哪条分享（也可用 PathVariable 传）
+        private String  content;        // 评论内容
+        private String  createTime;     // 可选：ISO 字符串；不传则后端用 now()
+        private Integer preCommentId;   // 可选：回复某条评论
+    }
 }
