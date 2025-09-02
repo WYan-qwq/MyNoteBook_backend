@@ -7,6 +7,7 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.awt.print.Pageable;
 import java.util.List;
 
 public interface ShareRepository extends JpaRepository<ShareEntity, Integer> {
@@ -31,5 +32,9 @@ public interface ShareRepository extends JpaRepository<ShareEntity, Integer> {
     @Transactional
     @Query("update ShareEntity s set s.comments = s.comments - 1 where s.id = :id and s.comments > 0")
     int decComments(@Param("id") Integer id);
+
+    @Query("select s from ShareEntity s order by s.likes desc")
+    List<ShareEntity> findAllOrderByLikesDesc();
+
     
 }

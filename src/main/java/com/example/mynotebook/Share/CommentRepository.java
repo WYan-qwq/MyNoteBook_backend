@@ -26,4 +26,9 @@ public interface CommentRepository extends JpaRepository<CommentEntity, Integer>
     @Transactional
     @Query("update ShareEntity s set s.comments = case when s.comments >= :n then s.comments - :n else 0 end where s.id = :id")
     int decCommentsBy(@Param("id") Integer id, @Param("n") int n);
+
+    @Modifying(clearAutomatically = true, flushAutomatically = true)
+    @Transactional
+    @Query(value = "DELETE FROM comments WHERE sharing_id = :sid", nativeQuery = true)
+    int deleteAllBySharingId(@Param("sid") Integer sharingId);
 }

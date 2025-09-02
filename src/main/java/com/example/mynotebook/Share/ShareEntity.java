@@ -16,6 +16,7 @@ public class ShareEntity {
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "user_id", nullable = false)
+    @com.fasterxml.jackson.annotation.JsonIgnore
     private UserInfoEntity user;
 
     // ✅ 用日期替代 Plan 外键

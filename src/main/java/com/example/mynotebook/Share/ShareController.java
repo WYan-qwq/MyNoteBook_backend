@@ -3,6 +3,8 @@ package com.example.mynotebook.Share;
 import com.example.mynotebook.Share.DTO.CommentDtos;
 import com.example.mynotebook.Share.DTO.ShareCreateRequest;
 import com.example.mynotebook.Share.DTO.ShareDtos;
+import com.example.mynotebook.Share.DTO.ShareUpdateDtos;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -65,6 +67,28 @@ public class ShareController {
     public Map<String, Object> deleteComment(@PathVariable Integer commentId) {
         commentService.deleteOne(commentId);
         return Map.of("ok", true);
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<ShareEntity> editShare(
+            @PathVariable("id") Integer id,
+            @RequestBody ShareUpdateDtos.UpdateRequest req
+    ) {
+        ShareEntity updated = service.editShare(id, req);
+        return ResponseEntity.ok(updated);
+    }
+
+    /** 删除分享：连带删除点赞/评论 */
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteShare(@PathVariable("id") Integer id) {
+        service.deleteShare(id);
+        return ResponseEntity.noContent().build();
+    }
+
+    /** 按点赞数降序排列；可传 limit */
+    @GetMapping("/popular")
+    public ResponseEntity<List<ShareEntity>> popular(@RequestParam(value = "limit", required = false) Integer limit) {
+        return ResponseEntity.ok(service.listPopular(limit));
     }
 
 }

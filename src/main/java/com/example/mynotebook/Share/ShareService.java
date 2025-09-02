@@ -4,14 +4,18 @@ import com.example.mynotebook.Plan.PlanEntity;
 import com.example.mynotebook.Plan.PlanRepository;
 import com.example.mynotebook.Share.DTO.ShareCreateRequest;
 import com.example.mynotebook.Share.DTO.ShareDtos;
+import com.example.mynotebook.Share.DTO.ShareUpdateDtos;
 import com.example.mynotebook.User.UserInfoEntity;
 import com.example.mynotebook.User.UserInfoRepository;
 import jakarta.transaction.Transactional;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.time.Instant;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
@@ -21,16 +25,19 @@ public class ShareService {
     private final PlanRepository planRepo;
     private final UserInfoRepository userRepo;
     private final ShareLikeRepository likeRepo;
+    private final CommentRepository commentRepo;
 
 
     public ShareService(ShareRepository shareRepo,
                         PlanRepository planRepo,
                         ShareLikeRepository likeRepo,
-                        UserInfoRepository userRepo) {
+                        UserInfoRepository userRepo,
+                        CommentRepository commentRepo) {
         this.shareRepo = shareRepo;
         this.planRepo = planRepo;
         this.likeRepo = likeRepo;
         this.userRepo = userRepo;
+        this.commentRepo = commentRepo;
     }
 
     /** 创建分享（按某一天，而不是单条 plan） */
@@ -203,5 +210,39 @@ public class ShareService {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Share not found");
         }
         return likeRepo.existsByShare_IdAndUser_Id(shareId, userId);
+    }
+
+    @Transactional
+    public ShareEntity editShare(Integer shareId, ShareUpdateDtos.UpdateRequest req) {
+        ShareEntity e = shareRepo.findById(shareId)
+                .orElseThrow(() -> new IllegalArgumentException("Share not found: " + shareId));
+
+        if (req.getTitle() != null)   e.setTitle(req.getTitle().trim());
+        if (req.getDetails() != null) e.setDetails(req.getDetails().trim());
+
+        return shareRepo.save(e);
+    }
+
+    /** 删除分享：先删子表（like、comment），再删 share 主表 */
+    @Transactional
+    public void deleteShare(Integer shareId) {
+        if (!shareRepo.existsById(shareId)) {
+            throw new IllegalArgumentException("Share not found: " + shareId);
+        }
+        // 先删子表，避免外键/约束问题
+        likeRepo.deleteAllBySharingId(shareId);
+        commentRepo.deleteAllBySharingId(shareId);
+        // 再删 share 本身
+        shareRepo.deleteById(shareId);
+    }
+
+    /** 按 likes 降序；limit 可选（不分页） */
+    @Transactional
+    public List<ShareEntity> listPopular(Integer limit) {
+        List<ShareEntity> all = shareRepo.findAllOrderByLikesDesc();
+        if (limit != null && limit > 0 && limit < all.size()) {
+            return all.subList(0, limit);
+        }
+        return all;
     }
 }
