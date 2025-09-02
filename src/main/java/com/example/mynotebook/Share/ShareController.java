@@ -54,11 +54,17 @@ public class ShareController {
         return commentService.listByShare(sharingId);
     }
 
-    @PostMapping("/{id}/comments")
+    @PostMapping("/{id}/addcomments")
     public CommentDtos.CommentView createComment(@PathVariable("id") Integer sharingId,
                                                  @RequestBody CommentDtos.CommentCreateRequest req) {
         req.setSharingId(sharingId);   // 用 path 上的 id
         return commentService.create(req);
+    }
+
+    @DeleteMapping("/deletecomments/{commentId}")
+    public Map<String, Object> deleteComment(@PathVariable Integer commentId) {
+        commentService.deleteOne(commentId);
+        return Map.of("ok", true);
     }
 
 }

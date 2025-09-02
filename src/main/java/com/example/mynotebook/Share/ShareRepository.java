@@ -31,4 +31,5 @@ public interface ShareRepository extends JpaRepository<ShareEntity, Integer> {
     @Transactional
     @Query("update ShareEntity s set s.comments = s.comments - 1 where s.id = :id and s.comments > 0")
     int decComments(@Param("id") Integer id);
+    
 }

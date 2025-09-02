@@ -139,4 +139,52 @@ public class CommentService {
         Map<Integer, UserInfoEntity> users = Map.of(req.getUserId(), u);
         return toView(e, users); // 复用你之前的 toView(CommentEntity, Map<Integer,UserInfoEntity>)
     }
+
+    @Transactional
+    public void deleteOne(Integer commentId) {
+        CommentEntity c = repo.findById(commentId)
+                .orElseThrow(() -> new IllegalArgumentException("Comment not found: " + commentId));
+
+        Integer shareId = c.getSharingId();
+
+        // 先删评论
+        repo.deleteById(commentId);
+
+        // 再把对应 share 的计数 -1（带防负数）
+        shareRepo.decComments(shareId);
+    }
+
+    // ---------- 可选：级联删除（把该评论及其所有子孙都删掉，并按数量扣减） ----------
+    @Transactional
+    public int deleteCascade(Integer commentId) {
+        CommentEntity root = repo.findById(commentId)
+                .orElseThrow(() -> new IllegalArgumentException("Comment not found: " + commentId));
+
+        Integer shareId = root.getSharingId();
+
+        // DFS 收集所有要删除的 ID
+        List<Integer> toDelete = new ArrayList<>();
+        Deque<Integer> stack = new ArrayDeque<>();
+        stack.push(commentId);
+
+        while (!stack.isEmpty()) {
+            Integer id = stack.pop();
+            toDelete.add(id);
+            // 查直接子评论
+            List<Integer> children = repo.findIdsByParent(id);
+            for (Integer childId : children) stack.push(childId);
+        }
+
+        // 批量删除
+        repo.deleteAllByIdInBatch(toDelete);
+
+        // 根据删除数量扣减
+        // 如果你在 ShareRepository 做了 decCommentsBy，可以一次扣；否则循环调用 decComments 也可（但不推荐，多次 SQL）
+        // shareRepo.decCommentsBy(shareId, toDelete.size());
+        for (int i = 0; i < toDelete.size(); i++) {
+            shareRepo.decComments(shareId);
+        }
+
+        return toDelete.size();
+    }
 }
