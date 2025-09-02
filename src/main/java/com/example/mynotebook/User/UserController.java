@@ -2,16 +2,16 @@ package com.example.mynotebook.User;
 
 import com.example.mynotebook.User.DTO.LoginRequest;
 import com.example.mynotebook.User.DTO.RegisterRequest;
+import com.example.mynotebook.User.DTO.UserDtos;
 import com.example.mynotebook.User.DTO.UserResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
-import org.springframework.boot.CommandLineRunner;
-import org.springframework.context.annotation.Bean;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Map;
 import java.util.Optional;
 
 @Tag(name = "Auth", description = "user related")

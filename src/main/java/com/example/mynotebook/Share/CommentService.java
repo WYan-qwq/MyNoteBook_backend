@@ -154,7 +154,7 @@ public class CommentService {
         shareRepo.decComments(shareId);
     }
 
-    // ---------- 可选：级联删除（把该评论及其所有子孙都删掉，并按数量扣减） ----------
+    // ---------- 可选：级联删除（把该评论及其所有子孙都删掉，并按数量扣减） ----------plan
     @Transactional
     public int deleteCascade(Integer commentId) {
         CommentEntity root = repo.findById(commentId)
