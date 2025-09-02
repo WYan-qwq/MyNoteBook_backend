@@ -30,7 +30,7 @@ public interface ShareRepository extends JpaRepository<ShareEntity, Integer> {
 
     @Modifying(clearAutomatically = true, flushAutomatically = true)
     @Transactional
-    @Query("update ShareEntity s set s.comments = s.comments - 1 where s.id = :id and s.comments > 0")
+    @Query("update ShareEntity s set s.comments = s.comments - 1 where s.id = :id and s.comments >= 0")
     int decComments(@Param("id") Integer id);
 
     @Query("select s from ShareEntity s order by s.likes desc")

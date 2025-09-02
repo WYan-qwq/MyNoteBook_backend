@@ -52,9 +52,6 @@ public class UserProfileService {
         if (newPwd == null || newPwd.isBlank()) {
             throw new IllegalArgumentException("New password cannot be blank");
         }
-        if (newPwd.length() < 6) {
-            throw new IllegalArgumentException("New password must be at least 6 characters");
-        }
 
         var u = repo.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("User not found: " + userId));

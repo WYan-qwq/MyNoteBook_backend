@@ -4,6 +4,7 @@ import com.example.mynotebook.Share.DTO.CommentDtos;
 import com.example.mynotebook.Share.DTO.ShareCreateRequest;
 import com.example.mynotebook.Share.DTO.ShareDtos;
 import com.example.mynotebook.Share.DTO.ShareUpdateDtos;
+import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -36,6 +37,11 @@ public class ShareController {
     @PostMapping("/like")
     public ShareDtos.LikeResult like(@RequestBody ShareDtos.LikeCreateRequest req) {
         return service.like(req);
+    }
+
+    @PostMapping("/unlike")
+    public ShareDtos.UnlikeResult unlike(@RequestBody ShareDtos.LikeCreateRequest req) {
+        return service.unlike(req);
     }
 
     @GetMapping("/liked")
